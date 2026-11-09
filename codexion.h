@@ -77,6 +77,11 @@ typedef struct s_simulation
     int initialized_stop_mutexes;
 }   t_simulation;
 
+
+int     heap_pop(t_simulation *sim, t_request *request)
+int 	heap_insert(t_simulation *sim, t_request request)
+void	heapify_up(t_simulation *sim, int index)
+int     has_higher_priority(t_simulation *sim, t_request a, t_request b)
 int     init_mutexes(t_simulation *sim);
 int     init_scheduler(t_simulation *sim);
 int     init_dongles(t_simulation *sim);

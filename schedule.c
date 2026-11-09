@@ -40,3 +40,37 @@ void	heapify_up(t_simulation *sim, int index)
 			break;
 	}
 }
+
+int	heap_insert(t_simulation *sim, t_request request)
+{
+	int index;
+
+	if(sim->scheduler.size >= sim->scheduler.capacity)
+		return (1);
+
+	index = sim->scheduler.size;
+	sim->scheduler.heap[index] = request;
+	sim->scheduler.size++;
+	heapify_up(sim, index);
+	return (0);
+}
+
+int heap_pop(t_simulation *sim, t_request *request)
+{
+	t_scheduler *scheduler;
+
+	scheduler = &sim->scheduler;
+	if (scheduler->size == 0)
+		return (1);
+
+	*request = scheduler->heap[0];
+	scheduler->size--;
+	if (scheduler->heap > 0)
+	{
+		scheduler->heap[0] = scheduler->heap[scheduler.size];
+		heapify_down(sim, 0);
+	}
+	return (0);
+}
+
+void
