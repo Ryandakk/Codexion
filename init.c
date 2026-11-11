@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/05 16:56:11 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/06 18:40:31 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/11 17:12:57 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ int init_coders(t_simulation *sim)
     {
         sim->coders[i].id = i + 1;
         sim->coders[i].compile_count = 0;
+        sim->coders[i].sim = sim;
         sim->coders[i].state = 0;
         sim->coders[i].last_compile_start = 0;
         i++;
@@ -72,10 +73,13 @@ int init_coders(t_simulation *sim)
 int init_dongles(t_simulation *sim)
 {
     int i;
+
+    i = 0;
+    sim->dongles[i].in_use = 0;
     sim->dongles = malloc(sizeof(t_dongle) * (sim->config.number_of_coders));
     if(!sim->dongles)
         return(1);
-    i = 0;
+  
     while(i < sim->config.number_of_coders)
     {
         sim->dongles[i].id = i + 1;

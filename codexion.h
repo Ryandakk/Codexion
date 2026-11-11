@@ -7,6 +7,9 @@
 # include <unistd.h>
 # include <stdlib.h>
 # include <stdio.h>
+# include <string.h>
+# include <time.h>
+# include <errno.h>
 
 # define COMPILING 1
 # define DEBUGGING 2
@@ -25,21 +28,24 @@ typedef struct s_config
 	char	*scheduler;
 }	t_config;
 
+
 typedef struct s_coder
 {
 	int		    id;
 	int			compile_count;
 	int			state;
 	pthread_t	thread;
+    struct  s_simulation *sim;
 	long long	last_compile_start;
 }	t_coder;
 
 typedef struct s_dongle
 {
-    int id;
+    int             id;
+    int             in_use;
     pthread_mutex_t mutex;
-    long long last_release_time;
-    long long available_at;
+    long long       last_release_time;
+    long long       available_at;
 }   t_dongle;
 
 typedef struct s_request
@@ -78,19 +84,35 @@ typedef struct s_simulation
 }   t_simulation;
 
 
-int     heap_pop(t_simulation *sim, t_request *request)
-int 	heap_insert(t_simulation *sim, t_request request)
-void	heapify_up(t_simulation *sim, int index)
-int     has_higher_priority(t_simulation *sim, t_request a, t_request b)
-int     init_mutexes(t_simulation *sim);
-int     init_scheduler(t_simulation *sim);
-int     init_dongles(t_simulation *sim);
-int     init_simulation(t_simulation *sim, t_config *config);
-int     init_coders(t_simulation *sim);
-int		is_valid_number(char *str);
-int		ft_atoi(char *str);
-int		is_valid_scheduler(char *str);
-void    cleanup_simulation(t_simulation *sim);
-void	init_config(t_config *config, char **argv);
+void        refactor_phase(t_coder *coder);
+void        debug_phase(t_coder *coder);
+int         compile_phase(t_coder *coder);
+int	        wait_for_turn(t_simulation *sim, int coder_id);
+void        sleep_ms(int duration);
+long long   get_ready_time(t_simulation *sim, int left, int right, int count);
+void        *coder_routine(void *arg);
+int         dongles_in_use(t_simulation *sim, int left, int right, int count);
+int	        wait_for_cooldown(t_simulation *sim, long long ready_at);
+int	        grant_dongles(t_simulation *sim, int coder_id);
+int	        are_dongles_available(t_simulation *sim, int coder_id);
+int	        aquire_dongles(t_simulation *sim, int coder_id);
+int	        release_dongles(t_simulation *sim, int coder_id);
+long long   get_current_time(void);
+int         submit_request(t_simulation *sim, int coder_id);
+void        heapify_down(t_simulation *sim, int index);
+int         heap_pop(t_simulation *sim, t_request *request);
+int 	    heap_insert(t_simulation *sim, t_request request);
+void	    heapify_up(t_simulation *sim, int index);
+int         has_higher_priority(t_simulation *sim, t_request a, t_request b);
+int         init_mutexes(t_simulation *sim);
+int         init_scheduler(t_simulation *sim);
+int         init_dongles(t_simulation *sim);
+int         init_simulation(t_simulation *sim, t_config *config);
+int         init_coders(t_simulation *sim);
+int		    is_valid_number(char *str);
+int		    ft_atoi(char *str);
+int		    is_valid_scheduler(char *str);
+void        cleanup_simulation(t_simulation *sim);
+void	    init_config(t_config *config, char **argv);
 
 #endif
