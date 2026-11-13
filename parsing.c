@@ -46,15 +46,3 @@ int	is_valid_scheduler(char *str)
 		return (1);
 	return (0);
 }
-
-void	init_config(t_config *config, char **argv)
-{
-	config->number_of_coders = ft_atoi(argv[1]);
-	config->time_to_burnout = ft_atoi(argv[2]);
-	config->time_to_compile = ft_atoi(argv[3]);
-	config->time_to_debug = ft_atoi(argv[4]);
-	config->time_to_refactor = ft_atoi(argv[5]);
-	config->number_of_compiles_required = ft_atoi(argv[6]);
-	config->dongle_cooldown = ft_atoi(argv[7]);
-	config->scheduler = argv[8];
-}

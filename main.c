@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/04 18:15:34 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/09 17:53:16 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/13 19:30:53 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ int	main(int argc, char **argv)
 {
 	int			j;
 	int			number;
+	t_simulation sim;
 	t_config	config;
 
 	if (argc != 9)
@@ -56,5 +57,16 @@ int	main(int argc, char **argv)
 	printf("Cooldown: %d\n", config.dongle_cooldown);
 	printf("Scheduler: %s\n", config.scheduler);
 	printf("Arguments are valid\n");
+	if (init_simulation(&sim, &config) != 0)
+	{
+		printf("Error : simulation could not be initialized\n");
+		return (1);
+	}
+	if (run_coders(&sim) != 0)
+		{
+			cleanup_simulation(&sim);
+			return (1);
+		}
+	cleanup_simulation(&sim);
 	return (0);
 }

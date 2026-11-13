@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/05 16:56:11 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/11 17:12:57 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/13 19:22:26 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,5 +154,16 @@ void cleanup_simulation(t_simulation *sim)
     sim->initialized_log_mutexes = 0;
     sim->initialized_stop_mutexes = 0;
     sim->initialized_conditions = 0;
-    
+}
+
+void	init_config(t_config *config, char **argv)
+{
+	config->number_of_coders = ft_atoi(argv[1]);
+	config->time_to_burnout = ft_atoi(argv[2]);
+	config->time_to_compile = ft_atoi(argv[3]);
+	config->time_to_debug = ft_atoi(argv[4]);
+	config->time_to_refactor = ft_atoi(argv[5]);
+	config->number_of_compiles_required = ft_atoi(argv[6]);
+	config->dongle_cooldown = ft_atoi(argv[7]);
+	config->scheduler = argv[8];
 }

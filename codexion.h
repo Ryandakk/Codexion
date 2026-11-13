@@ -83,7 +83,7 @@ typedef struct s_simulation
     int initialized_stop_mutexes;
 }   t_simulation;
 
-
+int         run_coder(t_simulation *sim);
 void        refactor_phase(t_coder *coder);
 void        debug_phase(t_coder *coder);
 int         compile_phase(t_coder *coder);

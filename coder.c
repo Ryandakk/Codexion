@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/11 17:03:47 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/11 18:50:06 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/13 19:30:38 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,34 @@ void    *coder_routine(void *arg)
         refactor_phase(coder);
     }
     return (NULL);
+}
+
+int run_coders(t_simulation *sim)
+{
+    int i;
+    int created;
+
+    i = 0;
+    created = 0;
+    sim->start_time = get_current_time();
+    while(i<sim->config.number_of_coders)
+    {
+        sim->coders[i].last_compile_start = sim->start_time;
+        if(pthread_create(&sim->coders[i].thread, NULL, 
+        coder_routine, &sim->coders[i]) != 0)
+            break;
+        created++;
+        i++;
+    }
+    i = 0;
+    while(i < created)
+    {
+        pthread_join(sim->coders[i].thread, NULL);
+        i++;
+    }
+    if (created != sim->config.number_of_coders)
+        return (1);
+    return (0);
 }
 
 int compile_phase(t_coder *coder)
