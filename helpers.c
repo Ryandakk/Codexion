@@ -58,7 +58,6 @@ int	grant_dongles(t_simulation *sim, int coder_id)
     int         count;
     t_request   request;
 
-    coder->last_compile_start = get_current_time();
     count = sim->config.number_of_coders;
     left = coder_id - 1;
     right = coder_id % count;
@@ -70,6 +69,8 @@ int	grant_dongles(t_simulation *sim, int coder_id)
     pthread_mutex_lock(&sim->dongles[left].mutex);
     if(count > 1)
         pthread_mutex_lock(&sim->dongles[right].mutex);
+    sim->coders.[coder_id - 1].last_compile_start = get_current_time();
+    sim->coders.[coder_id - 1].state = COMPILING;
     return (1);
 }
 
@@ -84,7 +85,7 @@ void    *monitor_routine(void *arg)
     while (1)
     {
         dead_coder = 0;
-        pthread_mutex_lock(&sim->scheduler.mutex)
+        pthread_mutex_lock(&sim->scheduler.mutex);
         if(sim->stop)
         {
             pthread_mutex_unlock(&sim->scheduler.mutex);
@@ -94,7 +95,7 @@ void    *monitor_routine(void *arg)
         i = 0;
         while (i < sim->config.number_of_coders)
         {
-            if(sim->coders[i].state == FINISHED
+            if(sim->coders[i].state != FINISHED
                 && now - sim->coders[i].last_compile_start
                 >= sim->config.time_to_burnout)
                 {

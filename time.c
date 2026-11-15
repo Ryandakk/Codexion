@@ -25,3 +25,23 @@ void    sleep_ms(int duration)
 {
     usleep(duration * 1000);
 }
+
+int sleep_interrupt(t_simulation *sim, int duration)
+{
+    long long start;
+
+    start = get_current_time();
+
+    while(get_current_time - start < duration)
+    {
+        pthread_mutex_lock(&sim->scheduler.mutex);
+        if(sim->stop)
+        {
+            pthread_mutex_unlock(&sim->scheduler.mutex);
+            return (0);
+        }
+        pthread_mutex_unlock(&sim->scheduler.mutex);
+        usleep(1000);
+    }
+    return (1);
+}

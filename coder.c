@@ -26,7 +26,11 @@ void    *coder_routine(void *arg)
         if(compile_phase(coder) != 0)
             break;
         debug_phase(coder);
+        if(sim_stopped(sim))
+            break ;
         refactor_phase(coder);
+        if(sim_stopped(sim))
+            break ;
     }
     pthread_mutex_lock(&sim->scheduler.mutex);
     coder->state = FINISHED;
@@ -42,35 +46,41 @@ int run_coders(t_simulation *sim)
 
     i = 0;
     created = 0;
+    sim->stop = 0;
     sim->start_time = get_current_time();
-    while(i<sim->config.number_of_coders)
+    while(i < sim->config.number_of_coders)
     {
         sim->coders[i].last_compile_start = sim->start_time;
         i++;
     }
-    if(pthread_create(&sim->monitor_routine, NULL, monitor_routine, sim) != 0)
-    {
+    if(pthread_create(&sim->monitor_thread, NULL, monitor_routine, sim) != 0)
         return (1);
-    }
+    i = 0;
     while (i < sim->config.number_of_coders)
     {
-        if (pthread.create(&sim->coders[i].thread, NULL, coder_routine,
+        if (pthread_create(&sim->coders[i].thread, NULL, coder_routine,
             &sim->coders[i]) != 0)
-            break;
+            break ;
         created++;
         i++;
     }
-    i = 0;
-    while(i < created)
+    if (created != sim->config.number_of_coders)
+    {
+        pthread_mutex_lock(&sim->scheduler.mutex);
+        sim->stop = 1;
+        pthread_cond_broadcast(&sim->scheduler.condition);
+        pthread_mutex_unlock(&sim->scheduler.mutex);
+    }
+    while (i < created)
     {
         pthread_join(sim->coders[i].thread, NULL);
         i++;
     }
     pthread_mutex_lock(&sim->scheduler.mutex);
-    sim->stop = 1;
-    pthread_cond_broadcast(&sim->scheduler.condition);
-    pthread_mutex_unlock(&sim->scheduler.mutex);
-    pthread_join(sim->monitor_thread, NULL);
+	sim->stop = 1;
+	pthread_cond_broadcast(&sim->scheduler.condition);
+	pthread_mutex_unlock(&sim->scheduler.mutex);
+	pthread_join(sim->monitor_thread, NULL);
     if (created != sim->config.number_of_coders)
         return (1);
     return (0);
@@ -86,9 +96,16 @@ int compile_phase(t_coder *coder)
     if(wait_for_turn(sim, coder->id) == 0)
         return (0);
     printf("Coder %d started compiling", coder->id);
-    sleep_ms(sim->config.time_to_compile);
+    if(!sleep_interrupt(sim, sim->config.time_to_compile))
+    {
+        release_dongles(sim, coder->id);
+        return (1);
+    }
     coder->compile_count++;
     release_dongles(sim, coder->id);
+    pthread_mutex_lock(&sim->scheduler.mutex);
+    coder->state = DEBUGGING;
+    pthread_mutex_unlock(&sim->scheduler.mutex);
     printf("Coder %d has finished compiling", coder->id);
     return (0);
 }
@@ -99,8 +116,12 @@ void    debug_phase(t_coder *coder)
 
     sim = coder->sim;
     printf("Coder %d started debuggin", coder->id);
-    sleep_ms(sim->config.time_to_debug);
+    if(!sleep_interrupt(sim, sim->config.time_to_compile))
+        return ;
     printf("Coder %d has finished debugging", coder->id);
+    pthread_mutex_lock(&sim->scheder.mutex);
+    coder->state = REFACTORING;
+    pthread_mutex_unlock(&sim->scheduler.mutex);
 }
 
 void    refactor_phase(t_coder *coder)
@@ -109,6 +130,17 @@ void    refactor_phase(t_coder *coder)
 
     sim = coder->sim;
     printf("Coder %d started refactoring", coder->id);
-    sleep_ms(sim->config.time_to_refactor);
+    if(!sleep_interrupt(sim, sim->config.time_to_compile))
+        return ;
     printf("Coder %d has finished refactoring", coder->id);
+}
+
+int sim_stopped(t_simulation *sim)
+{
+    int stopped;
+
+    pthread_mutex_lock(&sim->scheduler.mutex);
+    stopped = sim->stop;
+    pthread_mutex_unlock(&sim->scheduler.mutex);
+    return (stopped);
 }

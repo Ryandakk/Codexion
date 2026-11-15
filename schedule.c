@@ -192,17 +192,17 @@ int	release_dongles(t_simulation *sim, int coder_id)
 	count = sim->config.number_of_coders;
 	left = coder_id - 1;
 	right = coder_id % count;
-	now = get_current_time();
 
-	pthread_mutex_lock(&sim->scheduler.mutex);
 	pthread_mutex_unlock(&sim->dongles[left].mutex);
+	if(count > 1)
+		pthread_mutex_unlock(&sim->dongles[right].mutex);
+	now = get_current_time();
+	pthread_mutex_lock(&sim->scheduler.mutex);
 	sim->dongles[left].last_release_time = now;
 	sim->dongles[left].available_at = now + sim->config.dongle_cooldown;
 	sim->dongles[left].in_use = 0;
-
 	if (count > 1)
 	{
-		pthread_mutex_lock(&sim->dongles[right].mutex);
 		sim->dongles[right].last_release_time = now;
 		sim->dongles[right].available_at = now 
 		+ sim->config.dongle_cooldown;
@@ -227,6 +227,11 @@ int	wait_for_turn(t_simulation *sim, int coder_id)
 	pthread_mutex_lock(&sim->scheduler.mutex);
 	while(1)
 	{
+		if(sim->stop)
+		{
+			pthread_mutex_unlock(&sim->scheduler.mutex);
+			return (0);
+		}
 		if(sim->scheduler.size > 0
 			&& sim->scheduler.heap[0].coder_id == coder_id
 			&& are_dongles_available(sim, coder_id))
