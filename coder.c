@@ -73,6 +73,8 @@ int run_coders(t_simulation *sim)
     }
     while (i < created)
     {
+
+        
         pthread_join(sim->coders[i].thread, NULL);
         i++;
     }
