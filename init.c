@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/05 16:56:11 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/13 19:22:26 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/16 17:41:42 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,6 @@ int init_dongles(t_simulation *sim)
     int i;
 
     i = 0;
-    sim->dongles[i].in_use = 0;
     sim->dongles = malloc(sizeof(t_dongle) * (sim->config.number_of_coders));
     if(!sim->dongles)
         return(1);
@@ -83,6 +82,7 @@ int init_dongles(t_simulation *sim)
     while(i < sim->config.number_of_coders)
     {
         sim->dongles[i].id = i + 1;
+         sim->dongles[i].in_use = 0;
         sim->dongles[i].last_release_time = 0;
         sim->dongles[i].available_at = 0;
         if(pthread_mutex_init(&sim->dongles[i].mutex, NULL) != 0)

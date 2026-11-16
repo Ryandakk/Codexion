@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/06 18:59:56 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/10 19:42:07 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/16 18:43:55 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,6 +178,8 @@ int	aquire_dongles(t_simulation *sim, int coder_id)
 	pthread_mutex_lock(&sim->dongles[left].mutex);
 	if (count > 1)
     	pthread_mutex_lock(&sim->dongles[right].mutex);
+	sim->coders[coder_id - 1].last_compile_start = get_current_time();
+	sim->coders[coder_id - 1].state = COMPILING;
     pthread_mutex_unlock(&sim->scheduler.mutex);
     return (1);
 }

@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/11 17:03:47 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/13 19:30:38 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/16 18:16:43 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,13 @@ void    *coder_routine(void *arg)
 
     coder = (t_coder*)arg;
     sim = coder->sim;
+    pthread_mutex_lock(&sim->log_mutex);
     printf("Coder %d thread has just started\n", coder->id);
+    pthread_mutex_unlock(&sim->log_mutex);
     while(coder->compile_count < sim->config.number_of_compiles_required)
     {
+        if(sim_stopped(sim))
+            break ;
         if(compile_phase(coder) != 0)
             break;
         debug_phase(coder);
@@ -71,6 +75,7 @@ int run_coders(t_simulation *sim)
         pthread_cond_broadcast(&sim->scheduler.condition);
         pthread_mutex_unlock(&sim->scheduler.mutex);
     }
+    i = 0;
     while (i < created)
     {
 
@@ -96,8 +101,10 @@ int compile_phase(t_coder *coder)
     if(submit_request(sim, coder->id) != 0)
         return (1);
     if(wait_for_turn(sim, coder->id) == 0)
-        return (0);
-    printf("Coder %d started compiling", coder->id);
+        return (1);
+    pthread_mutex_lock(&sim->log_mutex);
+    printf("Coder %d started compiling\n", coder->id);
+    pthread_mutex_unlock(&sim->log_mutex);
     if(!sleep_interrupt(sim, sim->config.time_to_compile))
     {
         release_dongles(sim, coder->id);
@@ -108,7 +115,9 @@ int compile_phase(t_coder *coder)
     pthread_mutex_lock(&sim->scheduler.mutex);
     coder->state = DEBUGGING;
     pthread_mutex_unlock(&sim->scheduler.mutex);
-    printf("Coder %d has finished compiling", coder->id);
+    pthread_mutex_lock(&sim->log_mutex);
+    printf("Coder %d has finished compiling\n", coder->id);
+    pthread_mutex_unlock(&sim->log_mutex);
     return (0);
 }
 
@@ -117,11 +126,15 @@ void    debug_phase(t_coder *coder)
     t_simulation *sim;
 
     sim = coder->sim;
-    printf("Coder %d started debuggin", coder->id);
-    if(!sleep_interrupt(sim, sim->config.time_to_compile))
+    pthread_mutex_lock(&sim->log_mutex);
+    printf("Coder %d started debugging\n", coder->id);
+    pthread_mutex_unlock(&sim->log_mutex);
+    if(!sleep_interrupt(sim, sim->config.time_to_debug))
         return ;
-    printf("Coder %d has finished debugging", coder->id);
-    pthread_mutex_lock(&sim->scheder.mutex);
+    pthread_mutex_lock(&sim->log_mutex);
+    printf("Coder %d has finished debugging\n", coder->id);
+    pthread_mutex_unlock(&sim->log_mutex);
+    pthread_mutex_lock(&sim->scheduler.mutex);
     coder->state = REFACTORING;
     pthread_mutex_unlock(&sim->scheduler.mutex);
 }
@@ -131,10 +144,14 @@ void    refactor_phase(t_coder *coder)
     t_simulation *sim;
 
     sim = coder->sim;
-    printf("Coder %d started refactoring", coder->id);
-    if(!sleep_interrupt(sim, sim->config.time_to_compile))
+    pthread_mutex_lock(&sim->log_mutex);
+    printf("Coder %d started refactoring\n", coder->id);
+    pthread_mutex_unlock(&sim->log_mutex);
+    if(!sleep_interrupt(sim, sim->config.time_to_refactor))
         return ;
-    printf("Coder %d has finished refactoring", coder->id);
+    pthread_mutex_lock(&sim->log_mutex);
+    printf("Coder %d has finished refactoring\n", coder->id);
+    pthread_mutex_unlock(&sim->log_mutex);
 }
 
 int sim_stopped(t_simulation *sim)

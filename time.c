@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 18:58:45 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/11 17:23:40 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/16 16:25:42 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ int sleep_interrupt(t_simulation *sim, int duration)
 
     start = get_current_time();
 
-    while(get_current_time - start < duration)
+    while(get_current_time() - start < duration)
     {
         pthread_mutex_lock(&sim->scheduler.mutex);
         if(sim->stop)

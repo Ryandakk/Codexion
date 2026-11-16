@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/10 19:09:56 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/10 19:22:56 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/16 18:01:24 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,8 +69,8 @@ int	grant_dongles(t_simulation *sim, int coder_id)
     pthread_mutex_lock(&sim->dongles[left].mutex);
     if(count > 1)
         pthread_mutex_lock(&sim->dongles[right].mutex);
-    sim->coders.[coder_id - 1].last_compile_start = get_current_time();
-    sim->coders.[coder_id - 1].state = COMPILING;
+    sim->coders[coder_id - 1].last_compile_start = get_current_time();
+    sim->coders[coder_id - 1].state = COMPILING;
     return (1);
 }
 
@@ -89,7 +89,7 @@ void    *monitor_routine(void *arg)
         if(sim->stop)
         {
             pthread_mutex_unlock(&sim->scheduler.mutex);
-            break;
+            break ;
         }
         now = get_current_time();
         i = 0;
@@ -110,7 +110,9 @@ void    *monitor_routine(void *arg)
         pthread_mutex_unlock(&sim->scheduler.mutex);
         if (dead_coder != 0)
         {
+            pthread_mutex_lock(&sim->log_mutex);
             printf("Coder %d burned out\n", dead_coder);
+            pthread_mutex_unlock(&sim->log_mutex);
             break ;
         }
         usleep(1000);
