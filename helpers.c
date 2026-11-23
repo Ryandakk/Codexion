@@ -61,7 +61,7 @@ int	grant_dongles(t_simulation *sim, int coder_id)
     count = sim->config.number_of_coders;
     left = coder_id - 1;
     right = coder_id % count;
-    if(heap_pop(sim, &request) != 0)
+    if(heap_pop(sim, &request, coder_id) != 0)
         return (0);
     sim->dongles[left].in_use = 1;
     if(count > 1)

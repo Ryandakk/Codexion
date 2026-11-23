@@ -82,6 +82,8 @@ typedef struct s_simulation
     int initialized_stop_mutexes;
 }   t_simulation;
 
+
+int	        is_my_turn(t_simulation *sim, int coder_id);
 int	        shares_dongle(t_simulation *sim, int a, int b);
 void        print_burnout(t_simulation *sim, int id, long long now);
 void        print_status(t_simulation *sim, int id, char *message);
@@ -105,7 +107,7 @@ int	        release_dongles(t_simulation *sim, int coder_id);
 long long   get_current_time(void);
 int         submit_request(t_simulation *sim, int coder_id);
 void        heapify_down(t_simulation *sim, int index);
-int         heap_pop(t_simulation *sim, t_request *request);
+int         heap_pop(t_simulation *sim, t_request *request, int coder_id);
 int 	    heap_insert(t_simulation *sim, t_request request);
 void	    heapify_up(t_simulation *sim, int index);
 int         has_higher_priority(t_simulation *sim, t_request a, t_request b);

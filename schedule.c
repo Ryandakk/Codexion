@@ -55,20 +55,22 @@ int	heap_insert(t_simulation *sim, t_request request)
 	return (0);
 }
 
-int	heap_pop(t_simulation *sim, t_request *request)
+int	heap_pop(t_simulation *sim, t_request *request, int coder_id)
 {
-	t_scheduler *scheduler;
+	int	i;
 
-	scheduler = &sim->scheduler;
-	if (scheduler->size == 0)
+	i = 0;
+	while(i < sim->scheduler.size && sim->scheduler.heap[i].coder_id != coder_id)
+		i++;
+	if (i == sim->scheduler.size)
 		return (1);
-
-	*request = scheduler->heap[0];
-	scheduler->size--;
-	if (scheduler->size > 0)
+	*request = sim->scheduler.heap[i];
+	sim->scheduler.size--;
+	if( i != sim->scheduler.size)
 	{
-		scheduler->heap[0] = scheduler->heap[scheduler->size];
-		heapify_down(sim, 0);
+		sim->scheduler.heap[i] = sim->scheduler.heap[sim->scheduler->size];
+		heapify_down(sim, i);
+		heapify_up(sim, i);
 	}
 	return (0);
 }
@@ -230,17 +232,47 @@ int	shares_dongle(t_simulation *sim, int a, int b)
 	int left_a;
 	int right_a;
 	int left_b;
-	int right_b
+	int right_b;
 	int count;
 
 	count = sim->config.number_of_coders;
 	left_a = a - 1;
 	right_a = a % count;
 	left_b = b - 1;
-	left_b = b % count;
-
-	if(left_a == left_b || left_a = right_b
+	right_b = b % count;
+	if(left_a == left_b || left_a == right_b
 		|| right_a == left_b || right_a == right_b)
 		return (1);
 	return (0);
+}
+
+int	is_my_turn(t_simulation *sim, int coder_id)
+{
+	int i;
+	int found;
+	t_request my_request;
+
+	i = 0;
+	found = 0;
+	while (i < sim->scheduler.size)
+	{
+		if(sim->scheduler.heap[i].coder_id == coder_id)
+		{
+			my_request = sim->scheduler.heap[i];
+			found = 1;
+		}
+		i++;
+	}
+	if(!found)
+		return (0);
+	i = 0;
+	while (i < sim->scheduler.size)
+	{
+		if(sim->scheduler.heap[i].coder_id != coder_id
+		&& has_higher_priority(sim,sim->scheduler.heap[i], my_request)
+		&& shares_dongle(sim, sim->scheduler.heap[i].coder_id, coder_id))
+		return (0);
+		i++;
+	}
+	return (1);
 }
