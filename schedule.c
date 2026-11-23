@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/06 18:59:56 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/16 18:43:55 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/10 19:42:07 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,41 +148,6 @@ int	are_dongles_available(t_simulation *sim, int coder_id)
 	return (1);
 }
 
-int	aquire_dongles(t_simulation *sim, int coder_id)
-{
-	int 		left;
-    int 		right;
-    int 		count;
-	t_request	request;
-
-	count = sim->config.number_of_coders;
-	left = coder_id - 1;
-	right = coder_id % count;
-
-	pthread_mutex_lock(&sim->scheduler.mutex);
-	if (sim->scheduler.size == 0
-		|| sim->scheduler.heap[0].coder_id != coder_id)
-	{
-		pthread_mutex_unlock(&sim->scheduler.mutex);
-		return (0);
-	}
-	if (!are_dongles_available(sim, coder_id))
-	{
-		pthread_mutex_unlock(&sim->scheduler.mutex);
-		return (0);
-	}
-	heap_pop(sim, &request);
-	sim->dongles[left].in_use = 1;
-	if(count > 1)
-		sim->dongles[right].in_use = 1;
-	pthread_mutex_lock(&sim->dongles[left].mutex);
-	if (count > 1)
-    	pthread_mutex_lock(&sim->dongles[right].mutex);
-	sim->coders[coder_id - 1].last_compile_start = get_current_time();
-	sim->coders[coder_id - 1].state = COMPILING;
-    pthread_mutex_unlock(&sim->scheduler.mutex);
-    return (1);
-}
 
 int	release_dongles(t_simulation *sim, int coder_id)
 {
@@ -258,4 +223,24 @@ int	wait_for_turn(t_simulation *sim, int coder_id)
 				return (0);
 			}
 	}
+}
+
+int	shares_dongle(t_simulation *sim, int a, int b)
+{
+	int left_a;
+	int right_a;
+	int left_b;
+	int right_b
+	int count;
+
+	count = sim->config.number_of_coders;
+	left_a = a - 1;
+	right_a = a % count;
+	left_b = b - 1;
+	left_b = b % count;
+
+	if(left_a == left_b || left_a = right_b
+		|| right_a == left_b || right_a == right_b)
+		return (1);
+	return (0);
 }

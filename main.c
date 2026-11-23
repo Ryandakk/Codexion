@@ -47,16 +47,11 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 	init_config(&config, argv);
-	printf("Coders: %d\n", config.number_of_coders);
-	printf("Burnout: %d\n", config.time_to_burnout);
-	printf("Compile: %d\n", config.time_to_compile);
-	printf("Debug: %d\n", config.time_to_debug);
-	printf("Refactor: %d\n", config.time_to_refactor);
-	printf("Required compiles: %d\n",
-		config.number_of_compiles_required);
-	printf("Cooldown: %d\n", config.dongle_cooldown);
-	printf("Scheduler: %s\n", config.scheduler);
-	printf("Arguments are valid\n");
+	if(config.number_of_coders == 0)
+	{
+		printf("Error: no coders provided\n");
+		return (1);
+	}
 	if (init_simulation(&sim, &config) != 0)
 	{
 		printf("Error : simulation could not be initialized\n");

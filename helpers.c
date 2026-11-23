@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/10 19:09:56 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/16 18:01:24 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/10 19:22:56 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ void    *monitor_routine(void *arg)
         if(sim->stop)
         {
             pthread_mutex_unlock(&sim->scheduler.mutex);
-            break ;
+            break;
         }
         now = get_current_time();
         i = 0;
@@ -110,12 +110,34 @@ void    *monitor_routine(void *arg)
         pthread_mutex_unlock(&sim->scheduler.mutex);
         if (dead_coder != 0)
         {
-            pthread_mutex_lock(&sim->log_mutex);
-            printf("Coder %d burned out\n", dead_coder);
-            pthread_mutex_unlock(&sim->log_mutex);
+            print_burnout(sim, dead_coder, now);
             break ;
         }
         usleep(1000);
     }
     return (NULL);
+}
+
+void    print_status(t_simulation *sim, int id, char *message)
+{
+    long long timestamp;
+
+    pthread_mutex_lock(&sim->log_mutex);
+    if(!sim_stopped(sim))
+    {
+        timestamp = get_current_time() - sim->start_time;
+        printf("%lld %d %s\n",timestamp, id, message);
+    }
+    pthread_mutex_unlock(&sim->log_mutex);
+}
+
+void    print_burnout(t_simulation *sim, int id, long long now)
+{
+    long long timestamp;
+
+    timestamp = now - sim->start_time;
+    pthread_mutex_lock(&sim->log_mutex);
+    printf("%lld %d %s\n", timestamp, id, "burned out");
+    pthread_mutex_unlock(&sim->log_mutex);
+
 }

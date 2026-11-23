@@ -1,4 +1,3 @@
-
 #ifndef CODEXION_H
 # define CODEXION_H
 
@@ -83,6 +82,9 @@ typedef struct s_simulation
     int initialized_stop_mutexes;
 }   t_simulation;
 
+int	        shares_dongle(t_simulation *sim, int a, int b);
+void        print_burnout(t_simulation *sim, int id, long long now);
+void        print_status(t_simulation *sim, int id, char *message);
 void        *monitor_routine(void *arg);
 int         sim_stopped(t_simulation *sim);
 int         sleep_interrupt(t_simulation *sim, int duration);
