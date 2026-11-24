@@ -12,13 +12,13 @@
 
 #include "codexion.h"
 
-int has_higher_priority(t_simulation *sim, t_request a, t_request b)
+int	has_higher_priority(t_simulation *sim, t_request a, t_request b)
 {
-    if(strcmp(sim->config.scheduler, "fifo") == 0)
-        return (a.order < b.order);
-    if(a.deadline != b.deadline)
-        return (a.deadline < b.deadline);
-    return (a.order < b.order);
+	if (strcmp(sim->config.scheduler, "fifo") == 0)
+		return (a.order < b.order);
+	if (a.deadline != b.deadline)
+		return (a.deadline < b.deadline);
+	return (a.order < b.order);
 }
 
 void	heapify_up(t_simulation *sim, int index)
@@ -29,7 +29,8 @@ void	heapify_up(t_simulation *sim, int index)
 	while (index > 0)
 	{
 		parent = (index - 1) / 2;
-		if (has_higher_priority(sim, sim->scheduler.heap[index], sim->scheduler.heap[parent]))
+		if (has_higher_priority(sim, sim->scheduler.heap[index],
+				sim->scheduler.heap[parent]))
 		{
 			temp = sim->scheduler.heap[index];
 			sim->scheduler.heap[index] = sim->scheduler.heap[parent];
@@ -37,17 +38,16 @@ void	heapify_up(t_simulation *sim, int index)
 			index = parent;
 		}
 		else
-			break;
+			break ;
 	}
 }
 
 int	heap_insert(t_simulation *sim, t_request request)
 {
-	int index;
+	int	index;
 
-	if(sim->scheduler.size >= sim->scheduler.capacity)
+	if (sim->scheduler.size >= sim->scheduler.capacity)
 		return (1);
-
 	index = sim->scheduler.size;
 	sim->scheduler.heap[index] = request;
 	sim->scheduler.size++;
@@ -60,44 +60,42 @@ int	heap_pop(t_simulation *sim, t_request *request, int coder_id)
 	int	i;
 
 	i = 0;
-	while(i < sim->scheduler.size && sim->scheduler.heap[i].coder_id != coder_id)
+	while (i < sim->scheduler.size
+		&& sim->scheduler.heap[i].coder_id != coder_id)
 		i++;
 	if (i == sim->scheduler.size)
 		return (1);
 	*request = sim->scheduler.heap[i];
 	sim->scheduler.size--;
-	if( i != sim->scheduler.size)
+	if (i != sim->scheduler.size)
 	{
-		sim->scheduler.heap[i] = sim->scheduler.heap[sim->scheduler->size];
+		sim->scheduler.heap[i] = sim->scheduler.heap[sim->scheduler.size];
 		heapify_down(sim, i);
 		heapify_up(sim, i);
 	}
 	return (0);
 }
 
-void	heapify_down(t_simulation	*sim, int index)
+void	heapify_down(t_simulation *sim, int index)
 {
 	int			left;
 	int			right;
 	int			highest;
 	t_request	temp;
 
-	while(1)
+	while (1)
 	{
 		left = (2 * index) + 1;
 		right = (2 * index) + 2;
 		highest = index;
-
-		if (left < sim->scheduler.size
-				&& has_higher_priority(sim, sim->scheduler.heap[left],
-					sim->scheduler.heap[highest]))
+		if (left < sim->scheduler.size && has_higher_priority(sim,
+				sim->scheduler.heap[left], sim->scheduler.heap[highest]))
 			highest = left;
-		if (right < sim->scheduler.size
-				&& has_higher_priority(sim, sim->scheduler.heap[right],
-					sim->scheduler.heap[highest]))
+		if (right < sim->scheduler.size && has_higher_priority(sim,
+				sim->scheduler.heap[right], sim->scheduler.heap[highest]))
 			highest = right;
 		if (highest == index)
-			break;
+			break ;
 		temp = sim->scheduler.heap[index];
 		sim->scheduler.heap[index] = sim->scheduler.heap[highest];
 		sim->scheduler.heap[highest] = temp;
@@ -111,14 +109,12 @@ int	submit_request(t_simulation *sim, int coder_id)
 	t_request	request;
 
 	coder = &sim->coders[coder_id - 1];
-
 	pthread_mutex_lock(&sim->scheduler.mutex);
 	request.coder_id = coder_id;
 	request.deadline = coder->last_compile_start + sim->config.time_to_burnout;
 	request.order = sim->scheduler.next_order;
 	sim->scheduler.next_order++;
-
-	if(heap_insert(sim, request) != 0)
+	if (heap_insert(sim, request) != 0)
 	{
 		pthread_mutex_unlock(&sim->scheduler.mutex);
 		return (1);
@@ -139,31 +135,28 @@ int	are_dongles_available(t_simulation *sim, int coder_id)
 	left = coder_id - 1;
 	right = coder_id % count;
 	now = get_current_time();
-	if(sim->dongles[left].in_use == 1
-		|| now < sim->dongles[left].available_at)
-			return (0);
+	if (sim->dongles[left].in_use == 1 || now < sim->dongles[left].available_at)
+		return (0);
 	if (count == 1)
 		return (1);
-	if(sim->dongles[right].in_use == 1
+	if (sim->dongles[right].in_use == 1
 		|| now < sim->dongles[right].available_at)
 		return (0);
 	return (1);
 }
 
-
 int	release_dongles(t_simulation *sim, int coder_id)
 {
 	int			left;
-	int 		right;
-	int 		count;
+	int			right;
+	int			count;
 	long long	now;
 
 	count = sim->config.number_of_coders;
 	left = coder_id - 1;
 	right = coder_id % count;
-
 	pthread_mutex_unlock(&sim->dongles[left].mutex);
-	if(count > 1)
+	if (count > 1)
 		pthread_mutex_unlock(&sim->dongles[right].mutex);
 	now = get_current_time();
 	pthread_mutex_lock(&sim->scheduler.mutex);
@@ -173,8 +166,7 @@ int	release_dongles(t_simulation *sim, int coder_id)
 	if (count > 1)
 	{
 		sim->dongles[right].last_release_time = now;
-		sim->dongles[right].available_at = now 
-		+ sim->config.dongle_cooldown;
+		sim->dongles[right].available_at = now + sim->config.dongle_cooldown;
 		sim->dongles[right].in_use = 0;
 	}
 	pthread_cond_broadcast(&sim->scheduler.condition);
@@ -194,84 +186,87 @@ int	wait_for_turn(t_simulation *sim, int coder_id)
 	left = coder_id - 1;
 	right = coder_id % count;
 	pthread_mutex_lock(&sim->scheduler.mutex);
-	while(1)
+	while (1)
 	{
-		if(sim->stop)
+		if (sim->stop)
 		{
 			pthread_mutex_unlock(&sim->scheduler.mutex);
 			return (0);
 		}
-		if(sim->scheduler.size > 0
-			&& sim->scheduler.heap[0].coder_id == coder_id
+		if (sim->scheduler.size > 0 && is_my_turn(sim, coder_id)
 			&& are_dongles_available(sim, coder_id))
 		{
 			result = grant_dongles(sim, coder_id);
 			pthread_mutex_unlock(&sim->scheduler.mutex);
 			return (result);
 		}
-		if(sim->scheduler.size > 0
-			&& sim->scheduler.heap[0].coder_id == coder_id
+		if (sim->scheduler.size > 0 && is_my_turn(sim, coder_id)
 			&& !dongles_in_use(sim, left, right, count))
-			{
-				ready_at = get_ready_time(sim, left, right, count);
-				result = wait_for_cooldown(sim, ready_at);
-			}
-			else
-				result = pthread_cond_wait(&sim->scheduler.condition,
+		{
+			ready_at = get_ready_time(sim, left, right, count);
+			result = wait_for_cooldown(sim, ready_at);
+		}
+		else
+			result = pthread_cond_wait(&sim->scheduler.condition,
 					&sim->scheduler.mutex);
-			if (result != 0 && result != ETIMEDOUT)
-			{
-				pthread_mutex_unlock(&sim->scheduler.mutex);
-				return (0);
-			}
+		if (result != 0 && result != ETIMEDOUT)
+		{
+			pthread_mutex_unlock(&sim->scheduler.mutex);
+			return (0);
+		}
 	}
 }
 
 int	shares_dongle(t_simulation *sim, int a, int b)
 {
-	int left_a;
-	int right_a;
-	int left_b;
-	int right_b;
-	int count;
+	int	left_a;
+	int	right_a;
+	int	left_b;
+	int	right_b;
+	int	count;
 
 	count = sim->config.number_of_coders;
 	left_a = a - 1;
 	right_a = a % count;
 	left_b = b - 1;
 	right_b = b % count;
-	if(left_a == left_b || left_a == right_b
-		|| right_a == left_b || right_a == right_b)
+	if (left_a == left_b || left_a == right_b || right_a == left_b
+		|| right_a == right_b)
 		return (1);
 	return (0);
 }
 
 int	is_my_turn(t_simulation *sim, int coder_id)
 {
-	int i;
-	int found;
-	t_request my_request;
+	int			i;
+	int			found;
+	int			count;
+	int			other;
+	t_request	my_request;
 
 	i = 0;
 	found = 0;
+	count = sim->config.number_of_coders;
 	while (i < sim->scheduler.size)
 	{
-		if(sim->scheduler.heap[i].coder_id == coder_id)
+		if (sim->scheduler.heap[i].coder_id == coder_id)
 		{
 			my_request = sim->scheduler.heap[i];
 			found = 1;
 		}
 		i++;
 	}
-	if(!found)
+	if (!found)
 		return (0);
 	i = 0;
 	while (i < sim->scheduler.size)
 	{
-		if(sim->scheduler.heap[i].coder_id != coder_id
-		&& has_higher_priority(sim,sim->scheduler.heap[i], my_request)
-		&& shares_dongle(sim, sim->scheduler.heap[i].coder_id, coder_id))
-		return (0);
+		other = sim->scheduler.heap[i].coder_id;
+		if (sim->scheduler.heap[i].coder_id != coder_id
+			&& has_higher_priority(sim, sim->scheduler.heap[i], my_request)
+			&& !dongles_in_use(sim, other - 1, other % count, count)
+			&& shares_dongle(sim, sim->scheduler.heap[i].coder_id, coder_id))
+			return (0);
 		i++;
 	}
 	return (1);

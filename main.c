@@ -10,15 +10,15 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
 #include "codexion.h"
+#include <stdio.h>
 
 int	main(int argc, char **argv)
 {
-	int			j;
-	int			number;
-	t_simulation sim;
-	t_config	config;
+	int				j;
+	int				number;
+	t_simulation	sim;
+	t_config		config;
 
 	if (argc != 9)
 	{
@@ -47,7 +47,7 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 	init_config(&config, argv);
-	if(config.number_of_coders == 0)
+	if (config.number_of_coders == 0)
 	{
 		printf("Error: no coders provided\n");
 		return (1);
@@ -58,10 +58,10 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 	if (run_coders(&sim) != 0)
-		{
-			cleanup_simulation(&sim);
-			return (1);
-		}
+	{
+		cleanup_simulation(&sim);
+		return (1);
+	}
 	cleanup_simulation(&sim);
 	return (0);
 }

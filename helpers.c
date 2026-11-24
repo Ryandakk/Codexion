@@ -12,23 +12,23 @@
 
 #include "codexion.h"
 
-int dongles_in_use(t_simulation *sim, int left, int right, int count)
+int	dongles_in_use(t_simulation *sim, int left, int right, int count)
 {
-    if (sim->dongles[left].in_use == 1)
-        return (1);
-    if (count > 1 && sim->dongles[right].in_use == 1)
-        return (1);
-    return (0);
+	if (sim->dongles[left].in_use == 1)
+		return (1);
+	if (count > 1 && sim->dongles[right].in_use == 1)
+		return (1);
+	return (0);
 }
 
-long long get_ready_time(t_simulation *sim, int left, int right, int count)
+long long	get_ready_time(t_simulation *sim, int left, int right, int count)
 {
-    long long ready_at;
-    
-    ready_at = sim->dongles[left].available_at;
-    if (count > 1 && sim->dongles[right].available_at > ready_at)
-        ready_at = sim->dongles[right].available_at;
-    return (ready_at);
+	long long	ready_at;
+
+	ready_at = sim->dongles[left].available_at;
+	if (count > 1 && sim->dongles[right].available_at > ready_at)
+		ready_at = sim->dongles[right].available_at;
+	return (ready_at);
 }
 
 int	wait_for_cooldown(t_simulation *sim, long long ready_at)
@@ -53,91 +53,90 @@ int	wait_for_cooldown(t_simulation *sim, long long ready_at)
 
 int	grant_dongles(t_simulation *sim, int coder_id)
 {
-    int         left;
-    int         right;
-    int         count;
-    t_request   request;
+	int			left;
+	int			right;
+	int			count;
+	t_request	request;
 
-    count = sim->config.number_of_coders;
-    left = coder_id - 1;
-    right = coder_id % count;
-    if(heap_pop(sim, &request, coder_id) != 0)
-        return (0);
-    sim->dongles[left].in_use = 1;
-    if(count > 1)
-        sim->dongles[right].in_use =1;
-    pthread_mutex_lock(&sim->dongles[left].mutex);
-    if(count > 1)
-        pthread_mutex_lock(&sim->dongles[right].mutex);
-    sim->coders[coder_id - 1].last_compile_start = get_current_time();
-    sim->coders[coder_id - 1].state = COMPILING;
-    return (1);
+	count = sim->config.number_of_coders;
+	left = coder_id - 1;
+	right = coder_id % count;
+	if (heap_pop(sim, &request, coder_id) != 0)
+		return (0);
+	sim->dongles[left].in_use = 1;
+	if (count > 1)
+		sim->dongles[right].in_use = 1;
+	pthread_mutex_lock(&sim->dongles[left].mutex);
+	if (count > 1)
+		pthread_mutex_lock(&sim->dongles[right].mutex);
+	sim->coders[coder_id - 1].last_compile_start = get_current_time();
+	sim->coders[coder_id - 1].state = COMPILING;
+	return (1);
 }
 
-void    *monitor_routine(void *arg)
+void	*monitor_routine(void *arg)
 {
-    t_simulation *sim;
-    int           i;
-    int           dead_coder;
-    long long     now;
+	t_simulation	*sim;
+	int				i;
+	int				dead_coder;
+	long long		now;
 
-    sim = (t_simulation *)arg;
-    while (1)
-    {
-        dead_coder = 0;
-        pthread_mutex_lock(&sim->scheduler.mutex);
-        if(sim->stop)
-        {
-            pthread_mutex_unlock(&sim->scheduler.mutex);
-            break;
-        }
-        now = get_current_time();
-        i = 0;
-        while (i < sim->config.number_of_coders)
-        {
-            if(sim->coders[i].state != FINISHED
-                && now - sim->coders[i].last_compile_start
-                >= sim->config.time_to_burnout)
-                {
-                    dead_coder = sim->coders[i].id;
-                    sim->stop = 1;
-                    break;
-                }
-                i++;
-        }
-        if (dead_coder != 0)
-            pthread_cond_broadcast(&sim->scheduler.condition);
-        pthread_mutex_unlock(&sim->scheduler.mutex);
-        if (dead_coder != 0)
-        {
-            print_burnout(sim, dead_coder, now);
-            break ;
-        }
-        usleep(1000);
-    }
-    return (NULL);
+	sim = (t_simulation *)arg;
+	while (1)
+	{
+		dead_coder = 0;
+		pthread_mutex_lock(&sim->scheduler.mutex);
+		if (sim->stop)
+		{
+			pthread_mutex_unlock(&sim->scheduler.mutex);
+			break ;
+		}
+		now = get_current_time();
+		i = 0;
+		while (i < sim->config.number_of_coders)
+		{
+			if (sim->coders[i].state != FINISHED
+				&& now - sim->coders[i].last_compile_start
+				>= sim->config.time_to_burnout)
+			{
+				dead_coder = sim->coders[i].id;
+				sim->stop = 1;
+				break ;
+			}
+			i++;
+		}
+		if (dead_coder != 0)
+			pthread_cond_broadcast(&sim->scheduler.condition);
+		pthread_mutex_unlock(&sim->scheduler.mutex);
+		if (dead_coder != 0)
+		{
+			print_burnout(sim, dead_coder, now);
+			break ;
+		}
+		usleep(1000);
+	}
+	return (NULL);
 }
 
-void    print_status(t_simulation *sim, int id, char *message)
+void	print_status(t_simulation *sim, int id, char *message)
 {
-    long long timestamp;
+	long long	timestamp;
 
-    pthread_mutex_lock(&sim->log_mutex);
-    if(!sim_stopped(sim))
-    {
-        timestamp = get_current_time() - sim->start_time;
-        printf("%lld %d %s\n",timestamp, id, message);
-    }
-    pthread_mutex_unlock(&sim->log_mutex);
+	pthread_mutex_lock(&sim->log_mutex);
+	if (!sim_stopped(sim))
+	{
+		timestamp = get_current_time() - sim->start_time;
+		printf("%lld %d %s\n", timestamp, id, message);
+	}
+	pthread_mutex_unlock(&sim->log_mutex);
 }
 
-void    print_burnout(t_simulation *sim, int id, long long now)
+void	print_burnout(t_simulation *sim, int id, long long now)
 {
-    long long timestamp;
+	long long	timestamp;
 
-    timestamp = now - sim->start_time;
-    pthread_mutex_lock(&sim->log_mutex);
-    printf("%lld %d %s\n", timestamp, id, "burned out");
-    pthread_mutex_unlock(&sim->log_mutex);
-
+	timestamp = now - sim->start_time;
+	pthread_mutex_lock(&sim->log_mutex);
+	printf("%lld %d %s\n", timestamp, id, "burned out");
+	pthread_mutex_unlock(&sim->log_mutex);
 }
