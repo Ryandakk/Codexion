@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/11 17:03:47 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/13 19:30:38 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/24 18:53:09 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,26 +42,9 @@ int	run_coders(t_simulation *sim)
 	int	i;
 	int	created;
 
-	i = 0;
-	created = 0;
-	sim->stop = 0;
-	sim->start_time = get_current_time();
-	while (i < sim->config.number_of_coders)
-	{
-		sim->coders[i].last_compile_start = sim->start_time;
-		i++;
-	}
-	if (pthread_create(&sim->monitor_thread, NULL, monitor_routine, sim) != 0)
+	created = start_coders(sim);
+	if (created == -1)
 		return (1);
-	i = 0;
-	while (i < sim->config.number_of_coders)
-	{
-		if (pthread_create(&sim->coders[i].thread, NULL, coder_routine,
-				&sim->coders[i]) != 0)
-			break ;
-		created++;
-		i++;
-	}
 	if (created != sim->config.number_of_coders)
 	{
 		pthread_mutex_lock(&sim->scheduler.mutex);
@@ -75,10 +58,7 @@ int	run_coders(t_simulation *sim)
 		pthread_join(sim->coders[i].thread, NULL);
 		i++;
 	}
-	pthread_mutex_lock(&sim->scheduler.mutex);
-	sim->stop = 1;
-	pthread_cond_broadcast(&sim->scheduler.condition);
-	pthread_mutex_unlock(&sim->scheduler.mutex);
+	lock_broadcast(sim);
 	pthread_join(sim->monitor_thread, NULL);
 	if (created != sim->config.number_of_coders)
 		return (1);
@@ -90,13 +70,7 @@ int	compile_phase(t_coder *coder)
 	t_simulation	*sim;
 
 	sim = coder->sim;
-	if (sim->config.number_of_coders == 1)
-	{
-		print_status(sim, coder->id, "has taken a dongle");
-		while (!sim_stopped(sim))
-			usleep(500);
-		return (1);
-	}
+	lonely_coder(sim, coder->id);
 	if (submit_request(sim, coder->id) != 0)
 		return (1);
 	if (wait_for_turn(sim, coder->id) == 0)
@@ -138,14 +112,4 @@ void	refactor_phase(t_coder *coder)
 	print_status(sim, coder->id, "is refactoring");
 	if (!sleep_interrupt(sim, sim->config.time_to_refactor))
 		return ;
-}
-
-int	sim_stopped(t_simulation *sim)
-{
-	int	stopped;
-
-	pthread_mutex_lock(&sim->scheduler.mutex);
-	stopped = sim->stop;
-	pthread_mutex_unlock(&sim->scheduler.mutex);
-	return (stopped);
 }

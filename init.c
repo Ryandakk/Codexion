@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/05 16:56:11 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/13 19:22:26 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/24 18:17:36 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,22 +25,8 @@ int	init_simulation(t_simulation *sim, t_config *config)
 	sim->initialized_conditions = 0;
 	sim->initialized_log_mutexes = 0;
 	sim->initialized_stop_mutexes = 0;
-	if (init_coders(sim) != 0)
-	{
-		cleanup_simulation(sim);
-		return (1);
-	}
-	if (init_dongles(sim) != 0)
-	{
-		cleanup_simulation(sim);
-		return (1);
-	}
-	if (init_scheduler(sim) != 0)
-	{
-		cleanup_simulation(sim);
-		return (1);
-	}
-	if (init_mutexes(sim) != 0)
+	if (init_coders(sim) != 0 || init_dongles(sim) != 0
+		|| init_scheduler(sim) != 0 || init_mutexes(sim) != 0)
 	{
 		cleanup_simulation(sim);
 		return (1);
@@ -119,47 +105,4 @@ int	init_mutexes(t_simulation *sim)
 		return (1);
 	sim->initialized_stop_mutexes++;
 	return (0);
-}
-
-void	cleanup_simulation(t_simulation *sim)
-{
-	int	i;
-
-	i = 0;
-	while (i < sim->initialized_dongles)
-	{
-		pthread_mutex_destroy(&sim->dongles[i].mutex);
-		i++;
-	}
-	if (sim->initialized_conditions > 0)
-		pthread_cond_destroy(&sim->scheduler.condition);
-	if (sim->scheduler_mutex_initialized == 1)
-		pthread_mutex_destroy(&sim->scheduler.mutex);
-	if (sim->initialized_log_mutexes > 0)
-		pthread_mutex_destroy(&sim->log_mutex);
-	if (sim->initialized_stop_mutexes > 0)
-		pthread_mutex_destroy(&sim->stop_mutex);
-	free(sim->scheduler.heap);
-	free(sim->coders);
-	free(sim->dongles);
-	sim->scheduler.heap = NULL;
-	sim->coders = NULL;
-	sim->dongles = NULL;
-	sim->initialized_dongles = 0;
-	sim->scheduler_mutex_initialized = 0;
-	sim->initialized_log_mutexes = 0;
-	sim->initialized_stop_mutexes = 0;
-	sim->initialized_conditions = 0;
-}
-
-void	init_config(t_config *config, char **argv)
-{
-	config->number_of_coders = ft_atoi(argv[1]);
-	config->time_to_burnout = ft_atoi(argv[2]);
-	config->time_to_compile = ft_atoi(argv[3]);
-	config->time_to_debug = ft_atoi(argv[4]);
-	config->time_to_refactor = ft_atoi(argv[5]);
-	config->number_of_compiles_required = ft_atoi(argv[6]);
-	config->dongle_cooldown = ft_atoi(argv[7]);
-	config->scheduler = argv[8];
 }

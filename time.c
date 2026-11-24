@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 18:58:45 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/11 17:23:40 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/24 18:00:50 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,4 +42,14 @@ int	sleep_interrupt(t_simulation *sim, int duration)
 		usleep(1000);
 	}
 	return (1);
+}
+
+int	sim_stopped(t_simulation *sim)
+{
+	int	stopped;
+
+	pthread_mutex_lock(&sim->scheduler.mutex);
+	stopped = sim->stop;
+	pthread_mutex_unlock(&sim->scheduler.mutex);
+	return (stopped);
 }

@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/10 19:09:56 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/10 19:22:56 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/24 19:14:55 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,14 +77,12 @@ int	grant_dongles(t_simulation *sim, int coder_id)
 void	*monitor_routine(void *arg)
 {
 	t_simulation	*sim;
-	int				i;
 	int				dead_coder;
 	long long		now;
 
 	sim = (t_simulation *)arg;
 	while (1)
 	{
-		dead_coder = 0;
 		pthread_mutex_lock(&sim->scheduler.mutex);
 		if (sim->stop)
 		{
@@ -92,19 +90,7 @@ void	*monitor_routine(void *arg)
 			break ;
 		}
 		now = get_current_time();
-		i = 0;
-		while (i < sim->config.number_of_coders)
-		{
-			if (sim->coders[i].state != FINISHED
-				&& now - sim->coders[i].last_compile_start
-				>= sim->config.time_to_burnout)
-			{
-				dead_coder = sim->coders[i].id;
-				sim->stop = 1;
-				break ;
-			}
-			i++;
-		}
+		dead_coder = find_burned_out(sim, now);
 		if (dead_coder != 0)
 			pthread_cond_broadcast(&sim->scheduler.condition);
 		pthread_mutex_unlock(&sim->scheduler.mutex);
@@ -116,27 +102,4 @@ void	*monitor_routine(void *arg)
 		usleep(1000);
 	}
 	return (NULL);
-}
-
-void	print_status(t_simulation *sim, int id, char *message)
-{
-	long long	timestamp;
-
-	pthread_mutex_lock(&sim->log_mutex);
-	if (!sim_stopped(sim))
-	{
-		timestamp = get_current_time() - sim->start_time;
-		printf("%lld %d %s\n", timestamp, id, message);
-	}
-	pthread_mutex_unlock(&sim->log_mutex);
-}
-
-void	print_burnout(t_simulation *sim, int id, long long now)
-{
-	long long	timestamp;
-
-	timestamp = now - sim->start_time;
-	pthread_mutex_lock(&sim->log_mutex);
-	printf("%lld %d %s\n", timestamp, id, "burned out");
-	pthread_mutex_unlock(&sim->log_mutex);
 }

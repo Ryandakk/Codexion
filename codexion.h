@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/24 17:55:00 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/24 17:55:00 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/24 18:59:26 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,14 @@ typedef struct s_simulation
 	int					initialized_stop_mutexes;
 }						t_simulation;
 
+void					destroy_mutexes(t_simulation *sim);
+int						find_burned_out(t_simulation *sim, long long now);
+int						find_request(t_simulation *sim, int coder_id,
+							t_request *my_request);
+int						lonely_coder(t_simulation *sim, int coder_id);
+void					lock_broadcast(t_simulation *sim);
+int						start_coders(t_simulation *sim);
+int						check_args(int argc, char **argv);
 int						is_my_turn(t_simulation *sim, int coder_id);
 int						shares_dongle(t_simulation *sim, int a, int b);
 void					print_burnout(t_simulation *sim, int id, long long now);

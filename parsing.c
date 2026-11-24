@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/24 17:55:00 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/24 17:55:00 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/24 18:48:16 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,5 +55,39 @@ int	is_valid_scheduler(char *str)
 		return (1);
 	if (strcmp(str, "edf") == 0)
 		return (1);
+	return (0);
+}
+
+int	check_args(int argc, char **argv)
+{
+	int	j;
+	int	number;
+
+	if (argc != 9)
+	{
+		printf("Error: Wrong number of arguments\n");
+		return (1);
+	}
+	j = 1;
+	while (j <= 7)
+	{
+		if (!is_valid_number(argv[j]))
+		{
+			printf("Error: Invalid number\n");
+			return (1);
+		}
+		number = ft_atoi(argv[j]);
+		if (number == -1)
+		{
+			printf("Error: Number overflow\n");
+			return (1);
+		}
+		j++;
+	}
+	if (!is_valid_scheduler(argv[8]))
+	{
+		printf("Error: Invalid scheduler name\n");
+		return (1);
+	}
 	return (0);
 }
