@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/24 17:55:00 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/24 18:59:26 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/25 18:59:18 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ typedef struct s_simulation
 	t_scheduler			scheduler;
 	pthread_t			monitor_thread;
 	pthread_mutex_t		log_mutex;
-	pthread_mutex_t		stop_mutex;
 	long long			start_time;
 	int					stop;
 	int					initialized_dongles;
@@ -93,6 +92,7 @@ typedef struct s_simulation
 	int					initialized_stop_mutexes;
 }						t_simulation;
 
+int						print_error(int number);
 void					destroy_mutexes(t_simulation *sim);
 int						find_burned_out(t_simulation *sim, long long now);
 int						find_request(t_simulation *sim, int coder_id,
@@ -113,6 +113,7 @@ void					refactor_phase(t_coder *coder);
 void					debug_phase(t_coder *coder);
 int						compile_phase(t_coder *coder);
 int						wait_for_turn(t_simulation *sim, int coder_id);
+int						wait_step(t_simulation *sim, int coder_id);
 void					sleep_ms(int duration);
 long long				get_ready_time(t_simulation *sim, int left, int right,
 							int count);

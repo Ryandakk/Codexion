@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/10 19:09:56 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/24 19:14:55 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/25 17:42:06 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,8 +91,6 @@ void	*monitor_routine(void *arg)
 		}
 		now = get_current_time();
 		dead_coder = find_burned_out(sim, now);
-		if (dead_coder != 0)
-			pthread_cond_broadcast(&sim->scheduler.condition);
 		pthread_mutex_unlock(&sim->scheduler.mutex);
 		if (dead_coder != 0)
 		{

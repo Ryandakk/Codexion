@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/24 18:30:25 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/24 19:14:08 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/25 17:58:40 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,9 +70,27 @@ int	find_burned_out(t_simulation *sim, long long now)
 			>= sim->config.time_to_burnout)
 		{
 			sim->stop = 1;
+			pthread_cond_broadcast(&sim->scheduler.condition);
 			return (sim->coders[i].id);
 		}
 		i++;
 	}
 	return (0);
+}
+
+int	wait_step(t_simulation *sim, int coder_id)
+{
+	int	left;
+	int	right;
+	int	count;
+
+	count = sim->config.number_of_coders;
+	left = coder_id - 1;
+	right = coder_id % count;
+	if (sim->scheduler.size > 0 && is_my_turn(sim, coder_id)
+		&& !dongles_in_use(sim, left, right, count))
+		return (wait_for_cooldown(sim,
+				get_ready_time(sim, left, right, count)));
+	return (pthread_cond_wait(&sim->scheduler.condition,
+			&sim->scheduler.mutex));
 }

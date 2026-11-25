@@ -6,7 +6,7 @@
 /*   By: radakrou <radakrou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 18:58:45 by radakrou          #+#    #+#             */
-/*   Updated: 2026/11/24 18:00:50 by radakrou         ###   ########.fr       */
+/*   Updated: 2026/11/25 18:57:12 by radakrou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,6 @@ long long	get_current_time(void)
 
 	gettimeofday(&tv, NULL);
 	return ((long long)tv.tv_sec * 1000 + (long long)tv.tv_usec / 1000);
-}
-
-void	sleep_ms(int duration)
-{
-	usleep(duration * 1000);
 }
 
 int	sleep_interrupt(t_simulation *sim, int duration)

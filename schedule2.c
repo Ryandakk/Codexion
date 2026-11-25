@@ -85,23 +85,12 @@ int	release_dongles(t_simulation *sim, int coder_id)
 
 int	wait_for_turn(t_simulation *sim, int coder_id)
 {
-	int			left;
-	int			right;
-	int			count;
-	int			result;
-	long long	ready_at;
+	int	result;
 
-	count = sim->config.number_of_coders;
-	left = coder_id - 1;
-	right = coder_id % count;
+	result = 0;
 	pthread_mutex_lock(&sim->scheduler.mutex);
-	while (1)
+	while (!sim->stop && (result == 0 || result == ETIMEDOUT))
 	{
-		if (sim->stop)
-		{
-			pthread_mutex_unlock(&sim->scheduler.mutex);
-			return (0);
-		}
 		if (sim->scheduler.size > 0 && is_my_turn(sim, coder_id)
 			&& are_dongles_available(sim, coder_id))
 		{
@@ -109,21 +98,10 @@ int	wait_for_turn(t_simulation *sim, int coder_id)
 			pthread_mutex_unlock(&sim->scheduler.mutex);
 			return (result);
 		}
-		if (sim->scheduler.size > 0 && is_my_turn(sim, coder_id)
-			&& !dongles_in_use(sim, left, right, count))
-		{
-			ready_at = get_ready_time(sim, left, right, count);
-			result = wait_for_cooldown(sim, ready_at);
-		}
-		else
-			result = pthread_cond_wait(&sim->scheduler.condition,
-					&sim->scheduler.mutex);
-		if (result != 0 && result != ETIMEDOUT)
-		{
-			pthread_mutex_unlock(&sim->scheduler.mutex);
-			return (0);
-		}
+		result = wait_step(sim, coder_id);
 	}
+	pthread_mutex_unlock(&sim->scheduler.mutex);
+	return (0);
 }
 
 int	shares_dongle(t_simulation *sim, int a, int b)
